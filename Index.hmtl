@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Honors Stats 207 Penalty Shootout</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #0b6623;
+            color: white;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #timer {
+            font-size: 22px;
+            margin-top: 10px;
+            color: yellow;
+        }
+        #questionBox {
+            margin-top: 20px;
+            font-size: 18px;
+            min-height: 50px;
+        }
+        #scoreboard {
+            margin-top: 20px;
+            font-size: 20px;
+        }
+        #result {
+            font-size: 20px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>⚽ Honors Stats 207 Penalty Shootout ⚽</h1>
+<h2 id="turnDisplay"></h2>
+
+<div id="timer"></div>
+<div id="questionBox"></div>
+
+<button onclick="submitAnswer(true)">True</button>
+<button onclick="submitAnswer(false)">False</button>
+
+<div id="result"></div>
+<div id="scoreboard"></div>
+
+<script>
+let questions = [
+    {q: "Inferential statistics involves making predictions or generalizations about a population based on a sample.", a: false},
+    {q: "Quantitative variables can take any numerical value, like height or weight.", a: true},
+    {q: "In a simple random sample, every possible sample of the same size has an equal chance of selection.", a: true},
+    {q: "The median is more appropriate for skewed distributions because the mean can be affected by extreme values.", a: false},
+    {q: "Boxplots display the median, quartiles, and potential outliers, giving a sense of shape.", a: true},
+    {q: "Standard deviation is expressed in the same units as the original data.", a: true},
+    {q: "A distribution with a long right tail is right-skewed (positively skewed).", a: false},
+    {q: "Marginal distributions show totals for one variable, summing over the categories of the other.", a: true},
+    {q: "Conditional distributions are used to describe relationships for categorical variables; scatterplots/correlation are used for quantitative variables.", a: false},
+    {q: "Transformations like logarithms or square roots can linearize nonlinear patterns.", a: true},
+    {q: "Z-scores standardize data so the mean is 0 and standard deviation is 1.", a: true},
+    {q: "Empirical rule: ~95% of data lie within 2 standard deviations in a normal distribution.", a: true},
+    {q: "Deviations from a straight line in a normal probability plot indicate potential non-normality.", a: true},
+    {q: "Correlation measures association, not causation.", a: false},
+    {q: "The closer the correlation coefficient is to ±1, the stronger the linear relationship.", a: false},
+    {q: "Outliers may influence correlation, but only if they lie far from the trend; not all outliers have a large effect.", a: false},
+    {q: "Spread measures variability, showing how closely data cluster around the center.", a: true},
+    {q: "The sum of joint frequencies equals the total sample size.", a: true},
+    {q: "Loosely clustered points with no pattern indicate a weak or no linear relationship.", a: false},
+    {q: "Adding a constant shifts all values but does not change the spread or standard deviation.", a: true}
+];
+
+let player1Score = 0;
+let player2Score = 0;
+let currentPlayer = 1;
+let round = 1;
+let suddenDeath = false;
+let questionIndex = 0;
+let timer;
+let timeLeft = 10;
+
+function startTimer() {
+    timeLeft = 10;
+    document.getElementById("timer").innerHTML = "⏳ Time Left: " + timeLeft;
+
+    timer = setInterval(function() {
+        timeLeft--;
+        document.getElementById("timer").innerHTML = "⏳ Time Left: " + timeLeft;
+
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            document.getElementById("result").innerHTML = "⏰ Time's Up! Shot Saved!";
+            processTurn(false, true);
+        }
+    }, 1000);
+}
+
+function loadQuestion() {
+    if (questionIndex >= questions.length) {
+        questionIndex = 0;
+    }
+
+    document.getElementById("turnDisplay").innerHTML =
+        "Round " + round + " - Player " + currentPlayer + "'s Turn";
+
+    document.getElementById("questionBox").innerHTML = questions[questionIndex].q;
+    document.getElementById("result").innerHTML = "";
+    startTimer();
+}
+
+function submitAnswer(answer) {
+    clearInterval(timer);
+    let correct = questions[questionIndex].a;
+    processTurn(answer === correct, false);
+}
+
+function processTurn(correct, timedOut) {
+    if (!suddenDeath) {
+        if (correct) {
+            document.getElementById("result").innerHTML = "⚽ GOAL!";
+            if (currentPlayer === 1) player1Score++;
+            else player2Score++;
+        } else {
+            document.getElementById("result").innerHTML = timedOut ? "⏰ Time's Up! Saved!" : "❌ SAVED!";
+        }
+
+        if (currentPlayer === 2) round++;
+
+        if (round > 5) {
+            if (player1Score > player2Score) return endGame("🏆 Player 1 Wins!");
+            if (player2Score > player1Score) return endGame("🏆 Player 2 Wins!");
+            suddenDeath = true;
+            document.getElementById("result").innerHTML += "<br>⚡ Sudden Death Begins!";
+        }
+
+    } else {
+        if (!correct) {
+            if (currentPlayer === 1) return endGame("🏆 Player 2 Wins in Sudden Death!");
+            else return endGame("🏆 Player 1 Wins in Sudden Death!");
+        } else {
+            document.getElementById("result").innerHTML = "⚽ Goal! Survives Sudden Death!";
+        }
+    }
+
+    questionIndex++;
+    currentPlayer = currentPlayer === 1 ? 2 : 1;
+
+    document.getElementById("scoreboard").innerHTML =
+        "Player 1: " + player1Score + " | Player 2: " + player2Score;
+
+    loadQuestion();
+}
+
+function endGame(message) {
+    clearInterval(timer);
+    document.getElementById("turnDisplay").innerHTML = "Game Over";
+    document.getElementById("questionBox").innerHTML = "";
+    document.getElementById("timer").innerHTML = "";
+    document.getElementById("result").innerHTML += "<br><br>" + message;
+}
+
+loadQuestion();
+</script>
+
+</body>
+</html>
